@@ -1,4 +1,4 @@
-package org.example.tudubem.keepout;
+package org.example.tudubem.space.keepout;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,41 +15,41 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/world/{worldId}/keepout-zones")
+@RequestMapping("/map/{mapId}/keepout-zones")
 @RequiredArgsConstructor
 public class KeepoutZoneController {
 
     private final KeepoutZoneService keepoutZoneService;
 
     @GetMapping
-    public List<KeepoutZoneEntity> findAll(@PathVariable Long worldId) {
-        return keepoutZoneService.findAllByWorldId(worldId);
+    public List<KeepoutZoneEntity> findAll(@PathVariable Long mapId) {
+        return keepoutZoneService.findAllByMapId(mapId);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<KeepoutZoneEntity> findById(@PathVariable Long worldId, @PathVariable Long id) {
-        return keepoutZoneService.findById(worldId, id)
+    public ResponseEntity<KeepoutZoneEntity> findById(@PathVariable Long mapId, @PathVariable Long id) {
+        return keepoutZoneService.findById(mapId, id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<KeepoutZoneEntity> create(@PathVariable Long worldId, @RequestBody KeepoutZoneEntity request) {
-        return keepoutZoneService.create(worldId, request)
-                .map(saved -> ResponseEntity.created(URI.create("/world/" + worldId + "/keepout-zones/" + saved.getId())).body(saved))
+    public ResponseEntity<KeepoutZoneEntity> create(@PathVariable Long mapId, @RequestBody KeepoutZoneEntity request) {
+        return keepoutZoneService.create(mapId, request)
+                .map(saved -> ResponseEntity.created(URI.create("/map/" + mapId + "/keepout-zones/" + saved.getId())).body(saved))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<KeepoutZoneEntity> update(@PathVariable Long worldId, @PathVariable Long id, @RequestBody KeepoutZoneEntity request) {
-        return keepoutZoneService.update(worldId, id, request)
+    public ResponseEntity<KeepoutZoneEntity> update(@PathVariable Long mapId, @PathVariable Long id, @RequestBody KeepoutZoneEntity request) {
+        return keepoutZoneService.update(mapId, id, request)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long worldId, @PathVariable Long id) {
-        if (!keepoutZoneService.delete(worldId, id)) {
+    public ResponseEntity<Void> delete(@PathVariable Long mapId, @PathVariable Long id) {
+        if (!keepoutZoneService.delete(mapId, id)) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();

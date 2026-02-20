@@ -1,8 +1,8 @@
-package org.example.tudubem.area;
+package org.example.tudubem.space.area;
 
 import lombok.RequiredArgsConstructor;
-import org.example.tudubem.world.WorldEntity;
-import org.example.tudubem.world.WorldRepository;
+import org.example.tudubem.space.map.MapEntity;
+import org.example.tudubem.space.map.MapRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,45 +15,45 @@ import java.util.Optional;
 public class AreaService {
 
     private final AreaRepository areaRepository;
-    private final WorldRepository worldRepository;
+    private final MapRepository mapRepository;
 
-    public List<AreaEntity> findAllByWorldId(Long worldId) {
-        return areaRepository.findByWorld_Id(worldId);
+    public List<AreaEntity> findAllByMapId(Long mapId) {
+        return areaRepository.findByMap_Id(mapId);
     }
 
-    public Optional<AreaEntity> findById(Long worldId, Long id) {
-        return areaRepository.findByIdAndWorld_Id(id, worldId);
+    public Optional<AreaEntity> findById(Long mapId, Long id) {
+        return areaRepository.findByIdAndMap_Id(id, mapId);
     }
 
     @Transactional
-    public Optional<AreaEntity> create(Long worldId, AreaEntity request) {
-        return worldRepository.findById(worldId)
-                .map(world -> {
+    public Optional<AreaEntity> create(Long mapId, AreaEntity request) {
+        return mapRepository.findById(mapId)
+                .map(map -> {
                     AreaEntity area = new AreaEntity();
-                    area.setWorld(world);
+                    area.setMap(map);
                     apply(area, request);
                     return areaRepository.save(area);
                 });
     }
 
     @Transactional
-    public Optional<AreaEntity> update(Long worldId, Long id, AreaEntity request) {
-        Optional<WorldEntity> worldOptional = worldRepository.findById(worldId);
-        if (worldOptional.isEmpty()) {
+    public Optional<AreaEntity> update(Long mapId, Long id, AreaEntity request) {
+        Optional<MapEntity> mapOptional = mapRepository.findById(mapId);
+        if (mapOptional.isEmpty()) {
             return Optional.empty();
         }
 
-        return areaRepository.findByIdAndWorld_Id(id, worldId)
+        return areaRepository.findByIdAndMap_Id(id, mapId)
                 .map(area -> {
-                    area.setWorld(worldOptional.get());
+                    area.setMap(mapOptional.get());
                     apply(area, request);
                     return areaRepository.save(area);
                 });
     }
 
     @Transactional
-    public boolean delete(Long worldId, Long id) {
-        return areaRepository.findByIdAndWorld_Id(id, worldId)
+    public boolean delete(Long mapId, Long id) {
+        return areaRepository.findByIdAndMap_Id(id, mapId)
                 .map(area -> {
                     areaRepository.delete(area);
                     return true;

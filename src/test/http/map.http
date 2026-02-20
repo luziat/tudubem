@@ -1,8 +1,8 @@
 @baseUrl = http://localhost:8080
 @imagePath = ./hospital_refined_map.png
 
-### 1) CREATE WORLD
-POST {{baseUrl}}/world
+### 1) CREATE MAP
+POST {{baseUrl}}/map
 Content-Type: application/json
 
 {
@@ -10,19 +10,19 @@ Content-Type: application/json
 }
 
 > {%
-  client.global.set("worldId", response.body.id);
+  client.global.set("mapId", response.body.id);
 %}
 
 ### 2) READ ALL
-GET {{baseUrl}}/world
+GET {{baseUrl}}/map
 Accept: application/json
 
 ### 3) READ ONE
-GET {{baseUrl}}/world/{{worldId}}
+GET {{baseUrl}}/map/{{mapId}}
 Accept: application/json
 
 ### 4) UPDATE NAME
-PUT {{baseUrl}}/world/{{worldId}}
+PUT {{baseUrl}}/map/{{mapId}}
 Content-Type: application/json
 
 {
@@ -31,27 +31,27 @@ Content-Type: application/json
 
 ### 5) UPLOAD SENSOR MAP (multipart)
 # NOTE: {{imagePath}} 파일이 실제로 존재해야 합니다.
-POST {{baseUrl}}/world/{{worldId}}/sensor-map
-Content-Type: multipart/form-data; boundary=WorldBoundary
+POST {{baseUrl}}/map/{{mapId}}/sensor-map
+Content-Type: multipart/form-data; boundary=MapBoundary
 
---WorldBoundary
+--MapBoundary
 Content-Disposition: form-data; name="file"; filename="hospital_refined_map.png"
 Content-Type: image/png
 
 < ./hospital_refined_map.png
---WorldBoundary--
+--MapBoundary--
 
 ### 6) READ ONE (CHECK sensorMapImagePath)
-GET {{baseUrl}}/world/{{worldId}}
+GET {{baseUrl}}/map/{{mapId}}
 Accept: application/json
 
 ### 7) READ SENSOR MAP IMAGE
-GET {{baseUrl}}/world/{{worldId}}/sensor-map
+GET {{baseUrl}}/map/{{mapId}}/sensor-map
 Accept: image/*
 
 ### 8) DELETE
-DELETE {{baseUrl}}/world/{{worldId}}
+DELETE {{baseUrl}}/map/{{mapId}}
 
 ### 9) READ DELETED (EXPECT 404)
-GET {{baseUrl}}/world/{{worldId}}
+GET {{baseUrl}}/map/{{mapId}}
 Accept: application/json

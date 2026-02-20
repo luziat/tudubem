@@ -1,19 +1,19 @@
 @baseUrl = http://localhost:8080
 
-### 1) CREATE WORLD
-POST {{baseUrl}}/world
+### 1) CREATE MAP
+POST {{baseUrl}}/map
 Content-Type: application/json
 
 {
-  "name": "Keepout Test World"
+  "name": "Keepout Test Map"
 }
 
 > {%
-  client.global.set("worldId", response.body.id);
+  client.global.set("mapId", response.body.id);
 %}
 
 ### 2) CREATE KEEPOUT ZONE
-POST {{baseUrl}}/world/{{worldId}}/keepout-zones
+POST {{baseUrl}}/map/{{mapId}}/keepout-zones
 Content-Type: application/json
 
 {
@@ -28,15 +28,15 @@ Content-Type: application/json
 %}
 
 ### 3) READ KEEPOUT ZONES
-GET {{baseUrl}}/world/{{worldId}}/keepout-zones
+GET {{baseUrl}}/map/{{mapId}}/keepout-zones
 Accept: application/json
 
 ### 4) READ KEEPOUT ZONE ONE
-GET {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+GET {{baseUrl}}/map/{{mapId}}/keepout-zones/{{keepoutId}}
 Accept: application/json
 
 ### 5) UPDATE KEEPOUT ZONE
-PUT {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+PUT {{baseUrl}}/map/{{mapId}}/keepout-zones/{{keepoutId}}
 Content-Type: application/json
 
 {
@@ -47,15 +47,15 @@ Content-Type: application/json
 }
 
 ### 6) READ UPDATED KEEPOUT ZONE
-GET {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+GET {{baseUrl}}/map/{{mapId}}/keepout-zones/{{keepoutId}}
 Accept: application/json
 
 ### 7) DELETE KEEPOUT ZONE
-DELETE {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+DELETE {{baseUrl}}/map/{{mapId}}/keepout-zones/{{keepoutId}}
 
 ### 8) READ DELETED KEEPOUT ZONE (EXPECT 404)
-GET {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+GET {{baseUrl}}/map/{{mapId}}/keepout-zones/{{keepoutId}}
 Accept: application/json
 
-### 9) DELETE WORLD
-DELETE {{baseUrl}}/world/{{worldId}}
+### 9) DELETE MAP
+DELETE {{baseUrl}}/map/{{mapId}}

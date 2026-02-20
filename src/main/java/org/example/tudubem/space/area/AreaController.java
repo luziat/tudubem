@@ -1,4 +1,4 @@
-package org.example.tudubem.area;
+package org.example.tudubem.space.area;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,41 +15,41 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/world/{worldId}/areas")
+@RequestMapping("/map/{mapId}/areas")
 @RequiredArgsConstructor
 public class AreaController {
 
     private final AreaService areaService;
 
     @GetMapping
-    public List<AreaEntity> findAll(@PathVariable Long worldId) {
-        return areaService.findAllByWorldId(worldId);
+    public List<AreaEntity> findAll(@PathVariable Long mapId) {
+        return areaService.findAllByMapId(mapId);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AreaEntity> findById(@PathVariable Long worldId, @PathVariable Long id) {
-        return areaService.findById(worldId, id)
+    public ResponseEntity<AreaEntity> findById(@PathVariable Long mapId, @PathVariable Long id) {
+        return areaService.findById(mapId, id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<AreaEntity> create(@PathVariable Long worldId, @RequestBody AreaEntity request) {
-        return areaService.create(worldId, request)
-                .map(saved -> ResponseEntity.created(URI.create("/world/" + worldId + "/areas/" + saved.getId())).body(saved))
+    public ResponseEntity<AreaEntity> create(@PathVariable Long mapId, @RequestBody AreaEntity request) {
+        return areaService.create(mapId, request)
+                .map(saved -> ResponseEntity.created(URI.create("/map/" + mapId + "/areas/" + saved.getId())).body(saved))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AreaEntity> update(@PathVariable Long worldId, @PathVariable Long id, @RequestBody AreaEntity request) {
-        return areaService.update(worldId, id, request)
+    public ResponseEntity<AreaEntity> update(@PathVariable Long mapId, @PathVariable Long id, @RequestBody AreaEntity request) {
+        return areaService.update(mapId, id, request)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long worldId, @PathVariable Long id) {
-        if (!areaService.delete(worldId, id)) {
+    public ResponseEntity<Void> delete(@PathVariable Long mapId, @PathVariable Long id) {
+        if (!areaService.delete(mapId, id)) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();

@@ -1,4 +1,4 @@
-package org.example.tudubem.keepout;
+package org.example.tudubem.space.keepout;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
@@ -12,7 +12,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-import org.example.tudubem.world.WorldEntity;
+import org.example.tudubem.space.map.MapEntity;
 
 @Data
 @Entity
@@ -25,8 +25,8 @@ public class KeepoutZoneEntity {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "world_id", nullable = false)
-    private WorldEntity world;
+    @JoinColumn(name = "map_id", nullable = false)
+    private MapEntity map;
 
     @Column(nullable = false, length = 100)
     private String name;

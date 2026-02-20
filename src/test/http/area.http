@@ -1,19 +1,19 @@
 @baseUrl = http://localhost:8080
 
-### 1) CREATE WORLD
-POST {{baseUrl}}/world
+### 1) CREATE MAP
+POST {{baseUrl}}/map
 Content-Type: application/json
 
 {
-  "name": "Area Test World"
+  "name": "Area Test Map"
 }
 
 > {%
-  client.global.set("worldId", response.body.id);
+  client.global.set("mapId", response.body.id);
 %}
 
 ### 2) CREATE AREA
-POST {{baseUrl}}/world/{{worldId}}/areas
+POST {{baseUrl}}/map/{{mapId}}/areas
 Content-Type: application/json
 
 {
@@ -28,15 +28,15 @@ Content-Type: application/json
 %}
 
 ### 3) READ AREAS
-GET {{baseUrl}}/world/{{worldId}}/areas
+GET {{baseUrl}}/map/{{mapId}}/areas
 Accept: application/json
 
 ### 4) READ AREA ONE
-GET {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+GET {{baseUrl}}/map/{{mapId}}/areas/{{areaId}}
 Accept: application/json
 
 ### 5) UPDATE AREA
-PUT {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+PUT {{baseUrl}}/map/{{mapId}}/areas/{{areaId}}
 Content-Type: application/json
 
 {
@@ -47,15 +47,15 @@ Content-Type: application/json
 }
 
 ### 6) READ UPDATED AREA
-GET {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+GET {{baseUrl}}/map/{{mapId}}/areas/{{areaId}}
 Accept: application/json
 
 ### 7) DELETE AREA
-DELETE {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+DELETE {{baseUrl}}/map/{{mapId}}/areas/{{areaId}}
 
 ### 8) READ DELETED AREA (EXPECT 404)
-GET {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+GET {{baseUrl}}/map/{{mapId}}/areas/{{areaId}}
 Accept: application/json
 
-### 9) DELETE WORLD
-DELETE {{baseUrl}}/world/{{worldId}}
+### 9) DELETE MAP
+DELETE {{baseUrl}}/map/{{mapId}}

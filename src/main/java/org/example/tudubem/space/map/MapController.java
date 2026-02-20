@@ -1,4 +1,4 @@
-package org.example.tudubem.world;
+package org.example.tudubem.space.map;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
@@ -29,30 +29,30 @@ import java.util.Locale;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/world")
+@RequestMapping("/map")
 @RequiredArgsConstructor
-public class WorldController {
-    private final WorldService worldService;
-    @Value("${app.world.image-dir:./data/world}")
-    private String worldImageDir;
+public class MapController {
+    private final MapService mapService;
+    @Value("${app.map.image-dir:./data/map}")
+    private String mapImageDir;
 
     @GetMapping
-    public List<WorldEntity> findAll() {
-        return worldService.findAll();
+    public List<MapEntity> findAll() {
+        return mapService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WorldEntity> findById(@PathVariable Long id) {
-        return worldService.findById(id)
+    public ResponseEntity<MapEntity> findById(@PathVariable Long id) {
+        return mapService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/sensor-map")
     public ResponseEntity<Resource> getSensorMap(@PathVariable Long id) {
-        return worldService.findById(id)
-                .flatMap(worldEntity -> {
-                    String sensorMapImagePath = worldEntity.getSensorMapImagePath();
+        return mapService.findById(id)
+                .flatMap(mapEntity -> {
+                    String sensorMapImagePath = mapEntity.getSensorMapImagePath();
                     if (sensorMapImagePath == null || sensorMapImagePath.isBlank()) {
                         return java.util.Optional.empty();
                     }
@@ -74,39 +74,39 @@ public class WorldController {
     }
 
     @PostMapping
-    public ResponseEntity<WorldEntity> create(@RequestBody WorldEntity worldEntity) {
-        WorldEntity saved = worldService.create(worldEntity);
-        return ResponseEntity.created(URI.create("/world/" + saved.getId())).body(saved);
+    public ResponseEntity<MapEntity> create(@RequestBody MapEntity mapEntity) {
+        MapEntity saved = mapService.create(mapEntity);
+        return ResponseEntity.created(URI.create("/map/" + saved.getId())).body(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<WorldEntity> update(@PathVariable Long id, @RequestBody WorldEntity request) {
-        return worldService.update(id, request)
+    public ResponseEntity<MapEntity> update(@PathVariable Long id, @RequestBody MapEntity request) {
+        return mapService.update(id, request)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!worldService.delete(id)) {
+        if (!mapService.delete(id)) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/{id}/sensor-map", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Mono<ResponseEntity<WorldEntity>> uploadSensorMap(@PathVariable Long id, @RequestPart("file") FilePart filePart) {
-        Path worldImagePath = Paths.get(worldImageDir);
+    public Mono<ResponseEntity<MapEntity>> uploadSensorMap(@PathVariable Long id, @RequestPart("file") FilePart filePart) {
+        Path mapImagePath = Paths.get(mapImageDir);
         String storedFileName = UUID.randomUUID() + getExtension(filePart.filename());
-        Path targetPath = worldImagePath.resolve(storedFileName).normalize();
+        Path targetPath = mapImagePath.resolve(storedFileName).normalize();
         String dbPath = targetPath.toString();
 
         return Mono.fromCallable(() -> {
-                    Files.createDirectories(worldImagePath);
+                    Files.createDirectories(mapImagePath);
                 return targetPath;
             })
             .flatMap(path -> filePart.transferTo(path).thenReturn(path))
-            .flatMap(path -> Mono.fromCallable(() -> worldService.updateSensorMapPath(id, dbPath))
+            .flatMap(path -> Mono.fromCallable(() -> mapService.updateSensorMapPath(id, dbPath))
                     .flatMap(updated -> {
                         if (updated.isPresent()) {
                                 return Mono.just(ResponseEntity.ok(updated.get()));

@@ -1,4 +1,4 @@
-package org.example.tudubem.area;
+package org.example.tudubem.space.area;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
@@ -12,7 +12,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-import org.example.tudubem.world.WorldEntity;
+import org.example.tudubem.space.map.MapEntity;
 
 @Data
 @Entity
@@ -24,11 +24,11 @@ public class AreaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 상위 World 참조
+    // 상위 Map 참조
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "world_id", nullable = false)
-    private WorldEntity world;
+    @JoinColumn(name = "map_id", nullable = false)
+    private MapEntity map;
 
     // 영역 이름
     @Column(nullable = false, length = 100)

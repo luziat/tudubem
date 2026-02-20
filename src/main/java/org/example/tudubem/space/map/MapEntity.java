@@ -1,4 +1,4 @@
-package org.example.tudubem.world;
+package org.example.tudubem.space.map;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,8 +10,8 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "world")
-public class WorldEntity {
+@Table(name = "map")
+public class MapEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

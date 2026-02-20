@@ -1,8 +1,8 @@
-package org.example.tudubem.keepout;
+package org.example.tudubem.space.keepout;
 
 import lombok.RequiredArgsConstructor;
-import org.example.tudubem.world.WorldEntity;
-import org.example.tudubem.world.WorldRepository;
+import org.example.tudubem.space.map.MapEntity;
+import org.example.tudubem.space.map.MapRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,45 +15,45 @@ import java.util.Optional;
 public class KeepoutZoneService {
 
     private final KeepoutZoneRepository keepoutZoneRepository;
-    private final WorldRepository worldRepository;
+    private final MapRepository mapRepository;
 
-    public List<KeepoutZoneEntity> findAllByWorldId(Long worldId) {
-        return keepoutZoneRepository.findByWorld_Id(worldId);
+    public List<KeepoutZoneEntity> findAllByMapId(Long mapId) {
+        return keepoutZoneRepository.findByMap_Id(mapId);
     }
 
-    public Optional<KeepoutZoneEntity> findById(Long worldId, Long id) {
-        return keepoutZoneRepository.findByIdAndWorld_Id(id, worldId);
+    public Optional<KeepoutZoneEntity> findById(Long mapId, Long id) {
+        return keepoutZoneRepository.findByIdAndMap_Id(id, mapId);
     }
 
     @Transactional
-    public Optional<KeepoutZoneEntity> create(Long worldId, KeepoutZoneEntity request) {
-        return worldRepository.findById(worldId)
-                .map(world -> {
+    public Optional<KeepoutZoneEntity> create(Long mapId, KeepoutZoneEntity request) {
+        return mapRepository.findById(mapId)
+                .map(map -> {
                     KeepoutZoneEntity keepoutZone = new KeepoutZoneEntity();
-                    keepoutZone.setWorld(world);
+                    keepoutZone.setMap(map);
                     apply(keepoutZone, request);
                     return keepoutZoneRepository.save(keepoutZone);
                 });
     }
 
     @Transactional
-    public Optional<KeepoutZoneEntity> update(Long worldId, Long id, KeepoutZoneEntity request) {
-        Optional<WorldEntity> worldOptional = worldRepository.findById(worldId);
-        if (worldOptional.isEmpty()) {
+    public Optional<KeepoutZoneEntity> update(Long mapId, Long id, KeepoutZoneEntity request) {
+        Optional<MapEntity> mapOptional = mapRepository.findById(mapId);
+        if (mapOptional.isEmpty()) {
             return Optional.empty();
         }
 
-        return keepoutZoneRepository.findByIdAndWorld_Id(id, worldId)
+        return keepoutZoneRepository.findByIdAndMap_Id(id, mapId)
                 .map(keepoutZone -> {
-                    keepoutZone.setWorld(worldOptional.get());
+                    keepoutZone.setMap(mapOptional.get());
                     apply(keepoutZone, request);
                     return keepoutZoneRepository.save(keepoutZone);
                 });
     }
 
     @Transactional
-    public boolean delete(Long worldId, Long id) {
-        return keepoutZoneRepository.findByIdAndWorld_Id(id, worldId)
+    public boolean delete(Long mapId, Long id) {
+        return keepoutZoneRepository.findByIdAndMap_Id(id, mapId)
                 .map(keepoutZone -> {
                     keepoutZoneRepository.delete(keepoutZone);
                     return true;
