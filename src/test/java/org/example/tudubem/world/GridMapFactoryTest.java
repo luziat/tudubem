@@ -17,7 +17,7 @@ class GridMapFactoryTest {
 
     @Test
     void buildGridMapAndVisualize() throws IOException {
-        Path sensorMapPath = Path.of("src/test/http/hospital_refined_map.png");
+        Path sensorMapPath = Path.of("src/test/hospital_refined_map.png");
         int cellSizePx = 1;
 
         GridMapFactory factory = new GridMapFactory();

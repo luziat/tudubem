@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:8080
-@imagePath = ./hospital_refined_map.png
+@imagePath = ../hospital_refined_map.png
 
 ### 1) CREATE MAP
 POST {{baseUrl}}/map
@@ -38,7 +38,7 @@ Content-Type: multipart/form-data; boundary=MapBoundary
 Content-Disposition: form-data; name="file"; filename="hospital_refined_map.png"
 Content-Type: image/png
 
-< ./hospital_refined_map.png
+< ../hospital_refined_map.png
 --MapBoundary--
 
 ### 6) READ ONE (CHECK sensorMapImagePath)
