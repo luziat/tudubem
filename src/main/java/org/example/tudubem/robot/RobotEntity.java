@@ -1,4 +1,4 @@
-package org.example.tudubem.world;
+package org.example.tudubem.robot;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,8 +10,8 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "world")
-public class WorldEntity {
+@Table(name = "robot")
+public class RobotEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +19,4 @@ public class WorldEntity {
 
     @Column(nullable = false, length = 100)
     private String name;
-
-    @Column(name = "sensor_map_image_path", length = 500)
-    private String sensorMapImagePath;
-
 }
-
