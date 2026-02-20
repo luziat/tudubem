@@ -1,0 +1,61 @@
+@baseUrl = http://localhost:8080
+
+### 1) CREATE WORLD
+POST {{baseUrl}}/world
+Content-Type: application/json
+
+{
+  "name": "Area Test World"
+}
+
+> {%
+  client.global.set("worldId", response.body.id);
+%}
+
+### 2) CREATE AREA
+POST {{baseUrl}}/world/{{worldId}}/areas
+Content-Type: application/json
+
+{
+  "name": "ER Zone",
+  "type": "DANGER",
+  "verticesJson": "[[0,0],[120,0],[120,80],[0,80]]",
+  "metadataJson": "{\"riskLevel\":\"HIGH\",\"access\":\"STAFF_ONLY\"}"
+}
+
+> {%
+  client.global.set("areaId", response.body.id);
+%}
+
+### 3) READ AREAS
+GET {{baseUrl}}/world/{{worldId}}/areas
+Accept: application/json
+
+### 4) READ AREA ONE
+GET {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+Accept: application/json
+
+### 5) UPDATE AREA
+PUT {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+Content-Type: application/json
+
+{
+  "name": "ER Zone Updated",
+  "type": "CONTROLLED",
+  "verticesJson": "[[10,10],[140,10],[140,90],[10,90]]",
+  "metadataJson": "{\"riskLevel\":\"MEDIUM\",\"access\":\"LIMITED\"}"
+}
+
+### 6) READ UPDATED AREA
+GET {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+Accept: application/json
+
+### 7) DELETE AREA
+DELETE {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+
+### 8) READ DELETED AREA (EXPECT 404)
+GET {{baseUrl}}/world/{{worldId}}/areas/{{areaId}}
+Accept: application/json
+
+### 9) DELETE WORLD
+DELETE {{baseUrl}}/world/{{worldId}}
