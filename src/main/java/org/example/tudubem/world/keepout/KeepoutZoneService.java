@@ -21,6 +21,10 @@ public class KeepoutZoneService {
         return keepoutZoneRepository.findByMap_Id(mapId);
     }
 
+    public List<KeepoutZoneEntity> findEnabledByMapId(Long mapId) {
+        return keepoutZoneRepository.findByMap_IdAndEnabledTrue(mapId);
+    }
+
     public Optional<KeepoutZoneEntity> findById(Long mapId, Long id) {
         return keepoutZoneRepository.findByIdAndMap_Id(id, mapId);
     }
