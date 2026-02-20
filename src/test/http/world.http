@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:8080
+
+### CREATE
+POST {{baseUrl}}/world
+Content-Type: application/json
+
+{
+  "name": "Earth"
+}
+
+### READ ALL
+GET {{baseUrl}}/world
+Accept: application/json
+
+### READ ONE
+GET {{baseUrl}}/world/1
+Accept: application/json
+
+### UPDATE
+PUT {{baseUrl}}/world/1
+Content-Type: application/json
+
+{
+  "name": "Earth Updated"
+}
+
+### DELETE
+DELETE {{baseUrl}}/world/1
+
