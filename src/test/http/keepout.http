@@ -1,0 +1,61 @@
+@baseUrl = http://localhost:8080
+
+### 1) CREATE WORLD
+POST {{baseUrl}}/world
+Content-Type: application/json
+
+{
+  "name": "Keepout Test World"
+}
+
+> {%
+  client.global.set("worldId", response.body.id);
+%}
+
+### 2) CREATE KEEPOUT ZONE
+POST {{baseUrl}}/world/{{worldId}}/keepout-zones
+Content-Type: application/json
+
+{
+  "name": "No-Go Zone A",
+  "verticesJson": "[[20,20],[200,20],[200,120],[20,120]]",
+  "enabled": true,
+  "reason": "고정 장애물 구역"
+}
+
+> {%
+  client.global.set("keepoutId", response.body.id);
+%}
+
+### 3) READ KEEPOUT ZONES
+GET {{baseUrl}}/world/{{worldId}}/keepout-zones
+Accept: application/json
+
+### 4) READ KEEPOUT ZONE ONE
+GET {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+Accept: application/json
+
+### 5) UPDATE KEEPOUT ZONE
+PUT {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+Content-Type: application/json
+
+{
+  "name": "No-Go Zone A Updated",
+  "verticesJson": "[[30,30],[220,30],[220,130],[30,130]]",
+  "enabled": false,
+  "reason": "일시 해제 테스트"
+}
+
+### 6) READ UPDATED KEEPOUT ZONE
+GET {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+Accept: application/json
+
+### 7) DELETE KEEPOUT ZONE
+DELETE {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+
+### 8) READ DELETED KEEPOUT ZONE (EXPECT 404)
+GET {{baseUrl}}/world/{{worldId}}/keepout-zones/{{keepoutId}}
+Accept: application/json
+
+### 9) DELETE WORLD
+DELETE {{baseUrl}}/world/{{worldId}}
