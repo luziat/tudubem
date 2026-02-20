@@ -1,8 +1,10 @@
-package org.example.tudubem.world.grid;
+package org.example.tudubem.world;
 
 import lombok.RequiredArgsConstructor;
-import org.example.tudubem.space.map.MapEntity;
-import org.example.tudubem.space.map.MapService;
+import org.example.tudubem.world.map.MapEntity;
+import org.example.tudubem.world.map.MapService;
+import org.example.tudubem.world.grid.GridMap;
+import org.example.tudubem.world.grid.GridMapFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +13,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class GridMapService {
+public class WorldService {
 
     private final MapService mapService;
     private Long cachedMapId;

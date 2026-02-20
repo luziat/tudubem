@@ -1,4 +1,4 @@
-package org.example.tudubem.space.map;
+package org.example.tudubem.world.map;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;

@@ -1,4 +1,4 @@
-package org.example.tudubem.space.map;
+package org.example.tudubem.world.map;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

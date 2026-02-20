@@ -1,8 +1,8 @@
-package org.example.tudubem.space.area;
+package org.example.tudubem.world.area;
 
 import lombok.RequiredArgsConstructor;
-import org.example.tudubem.space.map.MapEntity;
-import org.example.tudubem.space.map.MapRepository;
+import org.example.tudubem.world.map.MapEntity;
+import org.example.tudubem.world.map.MapRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

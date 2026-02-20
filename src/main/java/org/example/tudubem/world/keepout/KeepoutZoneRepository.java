@@ -1,4 +1,4 @@
-package org.example.tudubem.space.keepout;
+package org.example.tudubem.world.keepout;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

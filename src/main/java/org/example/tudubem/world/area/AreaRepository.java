@@ -1,4 +1,4 @@
-package org.example.tudubem.space.area;
+package org.example.tudubem.world.area;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
