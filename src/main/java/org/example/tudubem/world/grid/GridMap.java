@@ -1,4 +1,4 @@
-package org.example.tudubem.world;
+package org.example.tudubem.world.grid;
 
 import java.util.List;
 

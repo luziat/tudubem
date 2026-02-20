@@ -1,4 +1,4 @@
-package org.example.tudubem.world;
+package org.example.tudubem.world.grid;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -10,11 +10,11 @@ import java.util.List;
 
 public class GridMapFactory {
 
-    public GridMap create(Path sensorMapImagePath, int cellSizePx) {
+    public static GridMap create(Path sensorMapImagePath, int cellSizePx) {
         return create(sensorMapImagePath, cellSizePx, 127);
     }
 
-    public GridMap create(Path sensorMapImagePath, int cellSizePx, int occupiedThresholdGray) {
+    public static GridMap create(Path sensorMapImagePath, int cellSizePx, int occupiedThresholdGray) {
         if (cellSizePx <= 0) {
             throw new IllegalArgumentException("cellSizePx must be greater than 0");
         }
@@ -52,7 +52,7 @@ public class GridMapFactory {
         return new GridMap(widthCells, heightCells, cellSizePx, occupancy);
     }
 
-    private boolean isOccupiedCell(
+    private static boolean isOccupiedCell(
             BufferedImage image,
             int gridX,
             int gridY,

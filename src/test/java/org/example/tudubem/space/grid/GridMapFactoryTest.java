@@ -1,5 +1,7 @@
-package org.example.tudubem.world;
+package org.example.tudubem.space.grid;
 
+import org.example.tudubem.world.grid.GridMap;
+import org.example.tudubem.world.grid.GridMapFactory;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
