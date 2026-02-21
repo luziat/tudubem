@@ -25,7 +25,7 @@ public class WorldService {
 
     private WorldBundle cachedWorldBundle;
 
-    @Value("${app.grid.cell-size-px:8}")
+    @Value("${app.grid.cell-size-px:1}")
     private int defaultCellSizePx;
 
     public GridMap buildAndCache(Long mapId) {

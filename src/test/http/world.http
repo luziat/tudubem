@@ -24,12 +24,46 @@ Content-Type: image/png
 --WorldBoundary--
 
 ### 3) BUILD GRID MAP (WorldController)
+POST {{baseUrl}}/map/{{mapId}}/keepout-zones
+Content-Type: application/json
+
+{
+  "name": "World Keepout Zone",
+  "verticesJson": "[[0,0],[1000,0],[1000,300],[0,300]]",
+  "enabled": true,
+  "reason": "world.http keepout test"
+}
+
+> {%
+  client.global.set("keepoutId", response.body.id);
+%}
+
+### 4) BUILD GRID MAP (WITH ENABLED KEEPOUT)
 POST {{baseUrl}}/grid-map/{{mapId}}/build
 Accept: application/json
 
-### 4) BUILD WITH INVALID MAP ID (EXPECT 404)
+### 5) DISABLE KEEPOUT ZONE
+PUT {{baseUrl}}/map/{{mapId}}/keepout-zones/{{keepoutId}}
+Content-Type: application/json
+
+{
+  "name": "World Keepout Zone",
+  "verticesJson": "[[0,0],[1000,0],[1000,300],[0,300]]",
+  "enabled": false,
+  "reason": "disable keepout in world.http"
+}
+
+### 6) BUILD GRID MAP (WITH DISABLED KEEPOUT)
+POST {{baseUrl}}/grid-map/{{mapId}}/build
+Accept: application/json
+
+### 7) GET CACHED GRID MAP IMAGE (PNG)
+GET {{baseUrl}}/grid-map/{{mapId}}/image
+Accept: image/png
+
+### 8) BUILD WITH INVALID MAP ID (EXPECT 404)
 POST {{baseUrl}}/grid-map/999999999/build
 Accept: application/json
 
-### 5) DELETE MAP
+### 9) DELETE MAP
 DELETE {{baseUrl}}/map/{{mapId}}
