@@ -11,11 +11,10 @@ import org.springframework.stereotype.Component;
 
 import java.awt.geom.Point2D;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
@@ -24,8 +23,7 @@ public class WorldService {
     private final MapService mapService;
     private final KeepoutZoneService keepoutZoneService;
 
-    private Long cachedMapId;
-    private GridMap cachedGridMap;
+    private WorldBundle cachedWorldBundle;
 
     @Value("${app.grid.cell-size-px:8}")
     private int defaultCellSizePx;
@@ -44,119 +42,103 @@ public class WorldService {
         }
 
         GridMap baseGridMap = GridMapFactory.create(Path.of(sensorMapImagePath), cellSizePx);
-        GridMap completedGridMap = applyEnabledKeepoutZones(mapId, baseGridMap);
-        cachedMapId = mapId;
-        cachedGridMap = completedGridMap;
-        return completedGridMap;
-    }
+        WorldBundle previous = cachedWorldBundle;
 
-    public Optional<GridMap> getCached(Long mapId) {
-        if (cachedMapId == null || !cachedMapId.equals(mapId)) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(cachedGridMap);
-    }
+        List<List<Integer>> baseLayer = WorldUtils.deepCopy(baseGridMap.occupancy());
+        List<List<Integer>> keepoutLayer = buildKeepoutLayer(mapId, baseGridMap);
+        List<List<Integer>> dynamicLayer = WorldUtils.createEmptyLayer(baseGridMap.widthCells(), baseGridMap.heightCells());
 
-    public void evict(Long mapId) {
-        if (cachedMapId != null && cachedMapId.equals(mapId)) {
-            cachedMapId = null;
-            cachedGridMap = null;
-        }
-    }
-
-    private GridMap applyEnabledKeepoutZones(Long mapId, GridMap baseGridMap) {
-        List<KeepoutZoneEntity> keepoutZones = keepoutZoneService.findEnabledByMapId(mapId);
-        if (keepoutZones.isEmpty()) {
-            return baseGridMap;
+        Map<String, List<Point2D.Double>> dynamicObjects = new HashMap<>();
+        if (previous != null && previous.hasSameGridConfig(
+                mapId,
+                baseGridMap.widthCells(),
+                baseGridMap.heightCells(),
+                baseGridMap.cellSizePx()
+        )) {
+            dynamicObjects.putAll(previous.dynamicObjectsInGrid);
         }
 
-        List<List<Integer>> merged = deepCopy(baseGridMap.occupancy());
-        for (KeepoutZoneEntity zone : keepoutZones) {
-            List<Point2D.Double> polygonInPixels = parseVertices(zone.getVerticesJson());
-            List<Point2D.Double> polygonInGrid = toGridScale(polygonInPixels, baseGridMap.cellSizePx());
-            overlayPolygonAsOccupied(merged, polygonInGrid);
-        }
-
-        return new GridMap(
+        List<List<Integer>> compositeLayer = WorldUtils.combineLayers(baseLayer, keepoutLayer, dynamicLayer);
+        cachedWorldBundle = new WorldBundle(
+                mapId,
                 baseGridMap.widthCells(),
                 baseGridMap.heightCells(),
                 baseGridMap.cellSizePx(),
-                merged
+                baseLayer,
+                keepoutLayer,
+                dynamicLayer,
+                compositeLayer,
+                dynamicObjects
         );
+        rebuildDynamicAndComposite(cachedWorldBundle);
+        return WorldUtils.toGridMap(cachedWorldBundle.composite, cachedWorldBundle);
     }
 
-    private List<List<Integer>> deepCopy(List<List<Integer>> source) {
-        List<List<Integer>> copied = new ArrayList<>(source.size());
-        for (List<Integer> row : source) {
-            copied.add(new ArrayList<>(row));
+    public Optional<GridMap> getCached(Long mapId) {
+        if (cachedWorldBundle == null || !cachedWorldBundle.mapId.equals(mapId)) {
+            return Optional.empty();
         }
-        return copied;
+        return Optional.of(WorldUtils.toGridMap(cachedWorldBundle.composite, cachedWorldBundle));
     }
 
-    private List<Point2D.Double> parseVertices(String verticesJson) {
-        if (verticesJson == null || verticesJson.isBlank()) {
-            throw new IllegalStateException("keepout vertices_json is empty");
-        }
-        Pattern numberPattern = Pattern.compile("-?\\d+(?:\\.\\d+)?");
-        Matcher matcher = numberPattern.matcher(verticesJson);
-
-        List<Double> numbers = new ArrayList<>();
-        while (matcher.find()) {
-            numbers.add(Double.parseDouble(matcher.group()));
-        }
-        if (numbers.size() < 6 || numbers.size() % 2 != 0) {
-            throw new IllegalStateException("invalid keepout vertices_json: " + verticesJson);
-        }
-
-        List<Point2D.Double> polygon = new ArrayList<>(numbers.size() / 2);
-        for (int i = 0; i < numbers.size(); i += 2) {
-            polygon.add(new Point2D.Double(numbers.get(i), numbers.get(i + 1)));
-        }
-        return polygon;
-    }
-
-    private List<Point2D.Double> toGridScale(List<Point2D.Double> polygonInPixels, int cellSizePx) {
-        List<Point2D.Double> scaled = new ArrayList<>(polygonInPixels.size());
-        for (Point2D.Double point : polygonInPixels) {
-            scaled.add(new Point2D.Double(point.x / cellSizePx, point.y / cellSizePx));
-        }
-        return scaled;
-    }
-
-    private void overlayPolygonAsOccupied(List<List<Integer>> occupancy, List<Point2D.Double> polygonInGrid) {
-        if (polygonInGrid.size() < 3) {
-            return;
-        }
-
-        int height = occupancy.size();
-        int width = occupancy.getFirst().size();
-
-        for (int y = 0; y < height; y++) {
-            double centerY = y + 0.5;
-            List<Integer> row = occupancy.get(y);
-            for (int x = 0; x < width; x++) {
-                double centerX = x + 0.5;
-                if (isPointInPolygon(centerX, centerY, polygonInGrid)) {
-                    row.set(x, 1);
-                }
-            }
+    public void evict(Long mapId) {
+        if (cachedWorldBundle != null && cachedWorldBundle.mapId.equals(mapId)) {
+            cachedWorldBundle = null;
         }
     }
 
-    private boolean isPointInPolygon(double x, double y, List<Point2D.Double> polygon) {
-        boolean inside = false;
-        for (int i = 0, j = polygon.size() - 1; i < polygon.size(); j = i++) {
-            double xi = polygon.get(i).x;
-            double yi = polygon.get(i).y;
-            double xj = polygon.get(j).x;
-            double yj = polygon.get(j).y;
-
-            boolean intersect = ((yi > y) != (yj > y))
-                    && (x < (xj - xi) * (y - yi) / ((yj - yi) + 1e-12) + xi);
-            if (intersect) {
-                inside = !inside;
-            }
-        }
-        return inside;
+    public GridMap upsertDynamicObject(Long mapId, String objectId, String verticesJson) {
+        WorldBundle bundle = ensureWorldBundle(mapId);
+        List<Point2D.Double> polygonInPixels = WorldUtils.parseVertices(verticesJson);
+        List<Point2D.Double> polygonInGrid = WorldUtils.toGridScale(polygonInPixels, bundle.cellSizePx);
+        bundle.dynamicObjectsInGrid.put(objectId, polygonInGrid);
+        rebuildDynamicAndComposite(bundle);
+        return WorldUtils.toGridMap(bundle.composite, bundle);
     }
+
+    public GridMap removeDynamicObject(Long mapId, String objectId) {
+        WorldBundle bundle = ensureWorldBundle(mapId);
+        bundle.dynamicObjectsInGrid.remove(objectId);
+        rebuildDynamicAndComposite(bundle);
+        return WorldUtils.toGridMap(bundle.composite, bundle);
+    }
+
+    public GridMap clearDynamicObjects(Long mapId) {
+        WorldBundle bundle = ensureWorldBundle(mapId);
+        bundle.dynamicObjectsInGrid.clear();
+        rebuildDynamicAndComposite(bundle);
+        return WorldUtils.toGridMap(bundle.composite, bundle);
+    }
+
+    private WorldBundle ensureWorldBundle(Long mapId) {
+        if (cachedWorldBundle == null || !cachedWorldBundle.mapId.equals(mapId)) {
+            buildAndCache(mapId);
+        }
+        return cachedWorldBundle;
+    }
+
+    private List<List<Integer>> buildKeepoutLayer(Long mapId, GridMap baseGridMap) {
+        List<List<Integer>> keepoutLayer = WorldUtils.createEmptyLayer(baseGridMap.widthCells(), baseGridMap.heightCells());
+        List<KeepoutZoneEntity> keepoutZones = keepoutZoneService.findEnabledByMapId(mapId);
+        for (KeepoutZoneEntity zone : keepoutZones) {
+            List<Point2D.Double> polygonInPixels = WorldUtils.parseVertices(zone.getVerticesJson());
+            List<Point2D.Double> polygonInGrid = WorldUtils.toGridScale(polygonInPixels, baseGridMap.cellSizePx());
+            WorldUtils.overlayPolygonAsOccupied(keepoutLayer, polygonInGrid);
+        }
+        return keepoutLayer;
+    }
+
+    private void rebuildDynamicAndComposite(WorldBundle bundle) {
+        List<List<Integer>> dynamicLayer = WorldUtils.createEmptyLayer(bundle.widthCells, bundle.heightCells);
+        applyDynamicObjects(dynamicLayer, bundle.dynamicObjectsInGrid);
+        bundle.dynamic = dynamicLayer;
+        bundle.composite = WorldUtils.combineLayers(bundle.base, bundle.keepout, bundle.dynamic);
+    }
+
+    private void applyDynamicObjects(List<List<Integer>> dynamicLayer, Map<String, List<Point2D.Double>> dynamicObjects) {
+        for (List<Point2D.Double> polygon : dynamicObjects.values()) {
+            WorldUtils.overlayPolygonAsOccupied(dynamicLayer, polygon);
+        }
+    }
+
 }

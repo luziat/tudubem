@@ -1,0 +1,35 @@
+@baseUrl = http://localhost:8080
+
+### 1) CREATE MAP
+POST {{baseUrl}}/map
+Content-Type: application/json
+
+{
+  "name": "World Controller Test Map"
+}
+
+> {%
+  client.global.set("mapId", response.body.id);
+%}
+
+### 2) UPLOAD SENSOR MAP (multipart)
+POST {{baseUrl}}/map/{{mapId}}/sensor-map
+Content-Type: multipart/form-data; boundary=WorldBoundary
+
+--WorldBoundary
+Content-Disposition: form-data; name="file"; filename="hospital_refined_map.png"
+Content-Type: image/png
+
+< ../hospital_refined_map.png
+--WorldBoundary--
+
+### 3) BUILD GRID MAP (WorldController)
+POST {{baseUrl}}/grid-map/{{mapId}}/build
+Accept: application/json
+
+### 4) BUILD WITH INVALID MAP ID (EXPECT 404)
+POST {{baseUrl}}/grid-map/999999999/build
+Accept: application/json
+
+### 5) DELETE MAP
+DELETE {{baseUrl}}/map/{{mapId}}
