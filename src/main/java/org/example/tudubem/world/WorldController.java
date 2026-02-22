@@ -7,21 +7,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.tudubem.world.grid.GridMap;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.imageio.ImageIO;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/grid-map")
@@ -46,6 +42,19 @@ public class WorldController {
         }
     }
 
+    @GetMapping(value = "/{mapId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Operation(summary = "캐시된 그리드맵 SSE 스트림", description = "해당 mapId의 GridMap 변경 이벤트를 SSE로 구독합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "구독 성공")
+    })
+    public Flux<ServerSentEvent<GridMap>> streamGridMap(@PathVariable Long mapId) {
+        return worldService.asFlux(mapId)
+                .map(gridMap -> ServerSentEvent.<GridMap>builder()
+                        .event("grid-map")
+                        .data(gridMap)
+                        .build());
+    }
+
     @GetMapping(value = "/{mapId}/image", produces = MediaType.IMAGE_PNG_VALUE)
     @Operation(summary = "캐시된 그리드맵 이미지 조회", description = "캐시된 GridMap을 PNG(image/png)로 반환합니다.")
     @ApiResponses({
@@ -55,31 +64,56 @@ public class WorldController {
     })
     public ResponseEntity<byte[]> getCachedGridMapImage(@PathVariable Long mapId) {
         return worldService.getCached(mapId)
-                .map(this::toPngResponse)
+                .map(WorldUtils::toPngResponse)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    private ResponseEntity<byte[]> toPngResponse(GridMap gridMap) {
-        int width = gridMap.widthCells();
-        int height = gridMap.heightCells();
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-        for (int y = 0; y < height; y++) {
-            List<Integer> row = gridMap.occupancy().get(y);
-            for (int x = 0; x < width; x++) {
-                boolean occupied = row.get(x) == 1;
-                int rgb = occupied ? Color.BLACK.getRGB() : Color.WHITE.getRGB();
-                image.setRGB(x, height - 1 - y, rgb);
-            }
-        }
-
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ImageIO.write(image, "png", baos);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
-                    .body(baos.toByteArray());
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
+    @PostMapping("/{mapId}/dynamic-objects")
+    @Operation(summary = "동적 객체 단건 업서트", description = "objectId 기준으로 동적 객체를 추가/갱신합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "처리 성공"),
+            @ApiResponse(responseCode = "400", description = "요청 형식 오류", content = @Content),
+            @ApiResponse(responseCode = "404", description = "지도를 찾을 수 없음", content = @Content)
+    })
+    public ResponseEntity<GridMap> upsertDynamicObject(
+            @PathVariable Long mapId,
+            @RequestBody DynamicObjectRequest request
+    ) {
+        try {
+            return ResponseEntity.ok(worldService.upsertDynamicObject(mapId, request.objectId(), request.verticesJson()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
         }
     }
+
+    @DeleteMapping("/{mapId}/dynamic-objects/{objectId}")
+    @Operation(summary = "동적 객체 제거", description = "objectId 기준으로 동적 객체를 제거합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "처리 성공"),
+            @ApiResponse(responseCode = "404", description = "지도를 찾을 수 없음", content = @Content)
+    })
+    public ResponseEntity<GridMap> removeDynamicObject(@PathVariable Long mapId, @PathVariable String objectId) {
+        try {
+            return ResponseEntity.ok(worldService.removeDynamicObject(mapId, objectId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{mapId}/dynamic-objects")
+    @Operation(summary = "동적 객체 전체 제거", description = "해당 mapId의 모든 동적 객체를 제거합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "처리 성공"),
+            @ApiResponse(responseCode = "404", description = "지도를 찾을 수 없음", content = @Content)
+    })
+    public ResponseEntity<GridMap> clearDynamicObjects(@PathVariable Long mapId) {
+        try {
+            return ResponseEntity.ok(worldService.clearDynamicObjects(mapId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

@@ -5,10 +5,12 @@ import org.example.tudubem.world.keepout.KeepoutZoneEntity;
 import org.example.tudubem.world.keepout.KeepoutZoneService;
 import org.example.tudubem.world.map.MapEntity;
 import org.example.tudubem.world.map.MapService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.imageio.ImageIO;
@@ -34,8 +36,16 @@ class WorldServiceTest {
     @Mock
     private KeepoutZoneService keepoutZoneService;
 
+    @Spy
+    private WorldDataStore worldDataStore;
+
     @InjectMocks
     private WorldService worldService;
+
+    @BeforeEach
+    void setUp() {
+        worldDataStore.init();
+    }
 
     @Test
     void buildAndCache_appliesEnabledKeepoutAreaAsOccupied() throws IOException {

@@ -8,6 +8,7 @@ import org.example.tudubem.world.grid.GridMap;
 import org.example.tudubem.world.grid.GridMapFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 
 import java.awt.geom.Point2D;
 import java.nio.file.Path;
@@ -18,20 +19,20 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class WorldService {
+public class WorldService extends WorldDataStore {
 
     private final MapService mapService;
     private final KeepoutZoneService keepoutZoneService;
 
-    private WorldBundle cachedWorldBundle;
-
     @Value("${app.grid.cell-size-px:1}")
     private int defaultCellSizePx;
 
+    // 기본 셀 크기로 그리드맵을 생성하고 캐시한다.
     public GridMap buildAndCache(Long mapId) {
         return buildAndCache(mapId, defaultCellSizePx);
     }
 
+    // 지정한 셀 크기로 그리드맵을 생성하고 캐시한다.
     public GridMap buildAndCache(Long mapId, int cellSizePx) {
         MapEntity mapEntity = mapService.findById(mapId)
                 .orElseThrow(() -> new IllegalArgumentException("map not found: " + mapId));
@@ -42,7 +43,7 @@ public class WorldService {
         }
 
         GridMap baseGridMap = GridMapFactory.create(Path.of(sensorMapImagePath), cellSizePx);
-        WorldBundle previous = cachedWorldBundle;
+        WorldBundle previous = current().orElse(null);
 
         List<List<Integer>> baseLayer = WorldUtils.deepCopy(baseGridMap.occupancy());
         List<List<Integer>> keepoutLayer = buildKeepoutLayer(mapId, baseGridMap);
@@ -59,7 +60,7 @@ public class WorldService {
         }
 
         List<List<Integer>> compositeLayer = WorldUtils.combineLayers(baseLayer, keepoutLayer, dynamicLayer);
-        cachedWorldBundle = new WorldBundle(
+        WorldBundle newBundle = new WorldBundle(
                 mapId,
                 baseGridMap.widthCells(),
                 baseGridMap.heightCells(),
@@ -70,55 +71,83 @@ public class WorldService {
                 compositeLayer,
                 dynamicObjects
         );
-        rebuildDynamicAndComposite(cachedWorldBundle);
-        return WorldUtils.toGridMap(cachedWorldBundle.composite, cachedWorldBundle);
+        rebuildDynamicAndComposite(newBundle);
+        publish(newBundle);
+        return WorldUtils.toGridMap(newBundle.composite, newBundle);
     }
 
+    // 캐시된 그리드맵을 조회한다.
     public Optional<GridMap> getCached(Long mapId) {
-        if (cachedWorldBundle == null || !cachedWorldBundle.mapId.equals(mapId)) {
+        Optional<WorldBundle> cached = current();
+        if (cached.isEmpty() || !cached.get().mapId.equals(mapId)) {
             return Optional.empty();
         }
-        return Optional.of(WorldUtils.toGridMap(cachedWorldBundle.composite, cachedWorldBundle));
+        WorldBundle bundle = cached.get();
+        return Optional.of(WorldUtils.toGridMap(bundle.composite, bundle));
     }
 
+    // 특정 mapId의 월드 번들 변경만 필터링해 GridMap 스트림으로 노출한다.
+    public Flux<GridMap> asFlux(Long mapId) {
+        return asFlux()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(bundle -> bundle.mapId.equals(mapId))
+                .map(bundle -> WorldUtils.toGridMap(bundle.composite, bundle));
+    }
+
+    // 캐시된 그리드맵을 제거한다.
     public void evict(Long mapId) {
-        if (cachedWorldBundle != null && cachedWorldBundle.mapId.equals(mapId)) {
-            cachedWorldBundle = null;
+        Optional<WorldBundle> cached = current();
+        if (cached.isPresent() && cached.get().mapId.equals(mapId)) {
+            clear();
         }
     }
 
+    // 동적 객체를 추가 또는 갱신한다.
     public GridMap upsertDynamicObject(Long mapId, String objectId, String verticesJson) {
         WorldBundle bundle = ensureWorldBundle(mapId);
         List<Point2D.Double> polygonInPixels = WorldUtils.parseVertices(verticesJson);
         List<Point2D.Double> polygonInGrid = WorldUtils.toGridScale(polygonInPixels, bundle.cellSizePx);
         bundle.dynamicObjectsInGrid.put(objectId, polygonInGrid);
         rebuildDynamicAndComposite(bundle);
+        publish(bundle);
         return WorldUtils.toGridMap(bundle.composite, bundle);
     }
 
+    // 동적 객체를 제거한다.
     public GridMap removeDynamicObject(Long mapId, String objectId) {
         WorldBundle bundle = ensureWorldBundle(mapId);
         bundle.dynamicObjectsInGrid.remove(objectId);
         rebuildDynamicAndComposite(bundle);
+        publish(bundle);
         return WorldUtils.toGridMap(bundle.composite, bundle);
     }
 
+    // 동적 객체를 모두 제거한다.
     public GridMap clearDynamicObjects(Long mapId) {
         WorldBundle bundle = ensureWorldBundle(mapId);
         bundle.dynamicObjectsInGrid.clear();
         rebuildDynamicAndComposite(bundle);
+        publish(bundle);
         return WorldUtils.toGridMap(bundle.composite, bundle);
     }
 
+    // 요청한 mapId의 캐시가 없으면 새로 생성한다.
     private WorldBundle ensureWorldBundle(Long mapId) {
-        if (cachedWorldBundle == null || !cachedWorldBundle.mapId.equals(mapId)) {
+        Optional<WorldBundle> cached = current();
+        if (cached.isEmpty() || !cached.get().mapId.equals(mapId)) {
             buildAndCache(mapId);
         }
-        return cachedWorldBundle;
+        return current()
+                .orElseThrow(() -> new IllegalStateException("world bundle cache is empty"));
     }
 
+    // 활성화된 keepout 영역을 레이어로 변환한다.
     private List<List<Integer>> buildKeepoutLayer(Long mapId, GridMap baseGridMap) {
+        // keepout 레이어 초기화
         List<List<Integer>> keepoutLayer = WorldUtils.createEmptyLayer(baseGridMap.widthCells(), baseGridMap.heightCells());
+
+        // keepout 계산
         List<KeepoutZoneEntity> keepoutZones = keepoutZoneService.findEnabledByMapId(mapId);
         for (KeepoutZoneEntity zone : keepoutZones) {
             List<Point2D.Double> polygonInPixels = WorldUtils.parseVertices(zone.getVerticesJson());
@@ -128,17 +157,19 @@ public class WorldService {
         return keepoutLayer;
     }
 
+    // 동적 레이어와 최종 합성 레이어를 다시 계산한다.
     private void rebuildDynamicAndComposite(WorldBundle bundle) {
-        List<List<Integer>> dynamicLayer = WorldUtils.createEmptyLayer(bundle.widthCells, bundle.heightCells);
-        applyDynamicObjects(dynamicLayer, bundle.dynamicObjectsInGrid);
-        bundle.dynamic = dynamicLayer;
-        bundle.composite = WorldUtils.combineLayers(bundle.base, bundle.keepout, bundle.dynamic);
-    }
 
-    private void applyDynamicObjects(List<List<Integer>> dynamicLayer, Map<String, List<Point2D.Double>> dynamicObjects) {
-        for (List<Point2D.Double> polygon : dynamicObjects.values()) {
+        // 다이나믹 레이어 초기화
+        List<List<Integer>> dynamicLayer = WorldUtils.createEmptyLayer(bundle.widthCells, bundle.heightCells);
+
+        // 다이나믹 객체 재계산
+        for (List<Point2D.Double> polygon : bundle.dynamicObjectsInGrid.values()) {
             WorldUtils.overlayPolygonAsOccupied(dynamicLayer, polygon);
         }
+
+        bundle.dynamic = dynamicLayer;
+        bundle.composite = WorldUtils.combineLayers(bundle.base, bundle.keepout, bundle.dynamic);
     }
 
 }
