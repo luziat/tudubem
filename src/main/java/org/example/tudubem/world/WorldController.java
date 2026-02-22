@@ -20,15 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 @RestController
-@RequestMapping("/grid-map")
+@RequestMapping("/world")
 @RequiredArgsConstructor
-@Tag(name = "GridMap", description = "그리드맵 빌드/조회 API")
+@Tag(name = "World", description = "월드 빌드/조회 API")
 public class WorldController {
 
     private final WorldService worldService;
 
     @PostMapping("/{mapId}/build")
-    @Operation(summary = "그리드맵 빌드 및 캐시", description = "지도의 센서맵과 레이어를 기반으로 GridMap을 생성하고 메모리에 캐시합니다.")
+    @Operation(summary = "월드 빌드 및 캐시", description = "지도의 센서맵과 레이어를 기반으로 GridMap을 생성하고 메모리에 캐시합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "빌드 성공"),
             @ApiResponse(responseCode = "404", description = "지도를 찾을 수 없음", content = @Content)
@@ -43,7 +43,7 @@ public class WorldController {
     }
 
     @GetMapping(value = "/{mapId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @Operation(summary = "캐시된 그리드맵 SSE 스트림", description = "해당 mapId의 GridMap 변경 이벤트를 SSE로 구독합니다.")
+    @Operation(summary = "캐시된 월드 SSE 스트림", description = "해당 mapId의 GridMap 변경 이벤트를 SSE로 구독합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "구독 성공")
     })
