@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
@@ -66,54 +65,6 @@ public class WorldController {
         return worldService.getCached(mapId)
                 .map(WorldUtils::toPngResponse)
                 .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @PostMapping("/{mapId}/dynamic-objects")
-    @Operation(summary = "동적 객체 단건 업서트", description = "objectId 기준으로 동적 객체를 추가/갱신합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "처리 성공"),
-            @ApiResponse(responseCode = "400", description = "요청 형식 오류", content = @Content),
-            @ApiResponse(responseCode = "404", description = "지도를 찾을 수 없음", content = @Content)
-    })
-    public ResponseEntity<GridMap> upsertDynamicObject(
-            @PathVariable Long mapId,
-            @RequestBody DynamicObjectRequest request
-    ) {
-        try {
-            return ResponseEntity.ok(worldService.upsertDynamicObject(mapId, request.objectId(), request.verticesJson()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    @DeleteMapping("/{mapId}/dynamic-objects/{objectId}")
-    @Operation(summary = "동적 객체 제거", description = "objectId 기준으로 동적 객체를 제거합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "처리 성공"),
-            @ApiResponse(responseCode = "404", description = "지도를 찾을 수 없음", content = @Content)
-    })
-    public ResponseEntity<GridMap> removeDynamicObject(@PathVariable Long mapId, @PathVariable String objectId) {
-        try {
-            return ResponseEntity.ok(worldService.removeDynamicObject(mapId, objectId));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @DeleteMapping("/{mapId}/dynamic-objects")
-    @Operation(summary = "동적 객체 전체 제거", description = "해당 mapId의 모든 동적 객체를 제거합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "처리 성공"),
-            @ApiResponse(responseCode = "404", description = "지도를 찾을 수 없음", content = @Content)
-    })
-    public ResponseEntity<GridMap> clearDynamicObjects(@PathVariable Long mapId) {
-        try {
-            return ResponseEntity.ok(worldService.clearDynamicObjects(mapId));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
     }
 
 }
