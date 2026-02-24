@@ -13,6 +13,7 @@ import java.util.Optional;
 public class ActorService {
 
     private final ActorRepository actorRepository;
+    private final ActorRegistry actorRegistry;
 
     public List<ActorEntity> findAll() {
         return actorRepository.findAll();
@@ -24,7 +25,12 @@ public class ActorService {
 
     @Transactional
     public ActorEntity create(ActorEntity actorEntity) {
-        return actorRepository.save(actorEntity);
+        if (actorEntity.getEnabled() == null) {
+            actorEntity.setEnabled(true);
+        }
+        ActorEntity saved = actorRepository.save(actorEntity);
+        actorRegistry.refresh();
+        return saved;
     }
 
     @Transactional
@@ -32,7 +38,12 @@ public class ActorService {
         return actorRepository.findById(id)
                 .map(actorEntity -> {
                     actorEntity.setName(request.getName());
-                    return actorRepository.save(actorEntity);
+                    if (request.getEnabled() != null) {
+                        actorEntity.setEnabled(request.getEnabled());
+                    }
+                    ActorEntity saved = actorRepository.save(actorEntity);
+                    actorRegistry.refresh();
+                    return saved;
                 });
     }
 
@@ -42,6 +53,7 @@ public class ActorService {
             return false;
         }
         actorRepository.deleteById(id);
+        actorRegistry.refresh();
         return true;
     }
 }

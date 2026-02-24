@@ -23,4 +23,8 @@ public class ActorEntity {
     @Column(nullable = false, length = 100)
     @Schema(description = "Actor 식별자", example = "forklift-01")
     private String name;
+
+    @Column(nullable = false)
+    @Schema(description = "활성 상태", example = "true")
+    private Boolean enabled = true;
 }
