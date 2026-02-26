@@ -102,6 +102,55 @@ public final class WorldUtils {
         }
     }
 
+    // GridMap 위에 actor 이동 궤적(파랑)과 현재 위치(빨강)를 오버레이한 PNG 응답을 반환한다.
+    public static ResponseEntity<byte[]> toPngResponse(
+            GridMap gridMap,
+            List<org.example.tudubem.actor.pathfind.GridPoint> trail,
+            org.example.tudubem.actor.pathfind.GridPoint current
+    ) {
+        int width = gridMap.widthCells();
+        int height = gridMap.heightCells();
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < height; y++) {
+            List<Integer> row = gridMap.occupancy().get(y);
+            for (int x = 0; x < width; x++) {
+                boolean occupied = row.get(x) == 1;
+                int rgb = occupied ? Color.BLACK.getRGB() : Color.WHITE.getRGB();
+                image.setRGB(x, height - 1 - y, rgb);
+            }
+        }
+
+        if (trail != null) {
+            int trailRgb = new Color(0, 122, 255).getRGB();
+            for (org.example.tudubem.actor.pathfind.GridPoint point : trail) {
+                if (point == null) {
+                    continue;
+                }
+                if (point.x() < 0 || point.y() < 0 || point.x() >= width || point.y() >= height) {
+                    continue;
+                }
+                image.setRGB(point.x(), height - 1 - point.y(), trailRgb);
+            }
+        }
+
+        if (current != null
+                && current.x() >= 0 && current.y() >= 0
+                && current.x() < width && current.y() < height) {
+            int currentRgb = Color.RED.getRGB();
+            image.setRGB(current.x(), height - 1 - current.y(), currentRgb);
+        }
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            ImageIO.write(image, "png", baos);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                    .body(baos.toByteArray());
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     // verticesJson 문자열에서 숫자만 추출해 (x, y) 좌표 목록으로 파싱한다.
     // 좌표는 최소 3개(숫자 6개) 이상이어야 폴리곤으로 인정한다.
     public static List<Point2D.Double> parseVertices(String verticesJson) {

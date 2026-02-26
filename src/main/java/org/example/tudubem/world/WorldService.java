@@ -95,6 +95,14 @@ public class WorldService extends WorldDataStore {
                 .map(bundle -> WorldUtils.toGridMap(bundle.composite, bundle));
     }
 
+    // 모든 mapId의 월드 번들 변경을 GridMap 스트림으로 노출한다.
+    public Flux<GridMap> gridMapFlux() {
+        return asFlux()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(bundle -> WorldUtils.toGridMap(bundle.composite, bundle));
+    }
+
     // 캐시된 그리드맵을 제거한다.
     public void evict(Long mapId) {
         Optional<WorldBundle> cached = current();

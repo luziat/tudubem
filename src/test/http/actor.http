@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:8080
+
+### 1) CREATE ACTOR
+POST {{baseUrl}}/actor
+Content-Type: application/json
+
+{
+  "name": "forklift-01",
+  "persona": "안전 우선으로 이동하고 장애물을 만나면 멈춘다.",
+  "enabled": true
+}
+
+> {%
+  client.global.set("actorId", response.body.id);
+%}
+
+### 2) READ ALL
+GET {{baseUrl}}/actor
+Accept: application/json
+
+### 3) READ ONE
+GET {{baseUrl}}/actor/{{actorId}}
+Accept: application/json
+
+### 4) UPDATE ACTOR
+PUT {{baseUrl}}/actor/{{actorId}}
+Content-Type: application/json
+
+{
+  "name": "forklift-01-updated",
+  "persona": "장애물 우회 후 목표 지점으로 재이동한다.",
+  "enabled": true
+}
+
+### 5) READ UPDATED ACTOR
+GET {{baseUrl}}/actor/{{actorId}}
+Accept: application/json
+
+### 6) DELETE ACTOR
+DELETE {{baseUrl}}/actor/{{actorId}}
+
+### 7) READ DELETED ACTOR (EXPECT 404)
+GET {{baseUrl}}/actor/{{actorId}}
+Accept: application/json

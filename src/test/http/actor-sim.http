@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:8080
+@imagePath = ../hospital_refined_map.png
+
+### 1) CREATE MAP
+POST {{baseUrl}}/map
+Content-Type: application/json
+
+{
+  "name": "ActorSim Test Map"
+}
+
+> {%
+  client.global.set("mapId", response.body.id);
+%}
+
+### 2) UPLOAD SENSOR MAP (multipart)
+POST {{baseUrl}}/map/{{mapId}}/sensor-map
+Content-Type: multipart/form-data; boundary=ActorSimBoundary
+
+--ActorSimBoundary
+Content-Disposition: form-data; name="file"; filename="hospital_refined_map.png"
+Content-Type: image/png
+
+< ../hospital_refined_map.png
+--ActorSimBoundary--
+
+### 3) BUILD WORLD GRID MAP CACHE
+POST {{baseUrl}}/world/{{mapId}}/build
+Accept: application/json
+
+### 4) MOVE TO TARGET CELL #1
+POST {{baseUrl}}/actor/sim/{{mapId}}
+Content-Type: application/json
+
+{
+  "x": 10,
+  "y": 10
+}
+
+### 5) TRAJECTORY IMAGE (ACTOR=1)
+GET {{baseUrl}}/actor/sim/{{mapId}}/image
+Accept: image/png
+
+### 6) MOVE TO TARGET CELL #2
+POST {{baseUrl}}/actor/sim/{{mapId}}
+Content-Type: application/json
+
+{
+  "x": 50,
+  "y": 50
+}
+
+### 7) TRAJECTORY IMAGE (ACTOR=1)
+GET {{baseUrl}}/actor/sim/{{mapId}}/image?actorId=1
+Accept: image/png
+
+### 8) WORLD BASE IMAGE (REFERENCE)
+GET {{baseUrl}}/world/{{mapId}}/image
+Accept: image/png
+
+### 9) DELETE MAP
+DELETE {{baseUrl}}/map/{{mapId}}
