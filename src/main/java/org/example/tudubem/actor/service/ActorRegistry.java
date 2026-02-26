@@ -6,6 +6,8 @@ import org.example.tudubem.actor.entity.ActorEntity;
 import org.example.tudubem.actor.entity.ActorRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,6 +30,10 @@ public class ActorRegistry {
                 activeActors.put(actor.getId(), actor);
             }
         }
+    }
+
+    public List<ActorEntity> findAllActive() {
+        return new ArrayList<>(activeActors.values());
     }
 
 }

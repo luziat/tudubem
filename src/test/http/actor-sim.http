@@ -1,5 +1,4 @@
 @baseUrl = http://localhost:8080
-@imagePath = ../hospital_refined_map.png
 
 ### 1) CREATE MAP
 POST {{baseUrl}}/map
@@ -13,7 +12,21 @@ Content-Type: application/json
   client.global.set("mapId", response.body.id);
 %}
 
-### 2) UPLOAD SENSOR MAP (multipart)
+### 2) CREATE ACTOR
+POST {{baseUrl}}/actor
+Content-Type: application/json
+
+{
+  "name": "sim-actor-01",
+  "size": 2,
+  "enabled": true
+}
+
+> {%
+  client.global.set("actorId", response.body.id);
+%}
+
+### 3) UPLOAD SENSOR MAP (multipart)
 POST {{baseUrl}}/map/{{mapId}}/sensor-map
 Content-Type: multipart/form-data; boundary=ActorSimBoundary
 
@@ -24,25 +37,25 @@ Content-Type: image/png
 < ../hospital_refined_map.png
 --ActorSimBoundary--
 
-### 3) BUILD WORLD GRID MAP CACHE
+### 4) BUILD WORLD GRID MAP CACHE
 POST {{baseUrl}}/world/{{mapId}}/build
 Accept: application/json
 
-### 4) MOVE TO TARGET CELL #1
-POST {{baseUrl}}/actor/sim/{{mapId}}
+### 5) MOVE TO TARGET CELL #1
+POST {{baseUrl}}/actor/sim/{{mapId}}?actorId={{actorId}}
 Content-Type: application/json
 
 {
   "x": 10,
-  "y": 500
+  "y": 50
 }
 
-### 5) TRAJECTORY IMAGE (ACTOR=1)
-GET {{baseUrl}}/monitor/{{mapId}}/trajectory-image
+### 6) TRAJECTORY IMAGE (ACTOR={{actorId}})
+GET {{baseUrl}}/monitor/{{mapId}}/trajectory-image?actorId={{actorId}}
 Accept: image/png
 
-### 6) MOVE TO TARGET CELL #2
-POST {{baseUrl}}/actor/sim/{{mapId}}
+### 7) MOVE TO TARGET CELL #2
+POST {{baseUrl}}/actor/sim/{{mapId}}?actorId={{actorId}}
 Content-Type: application/json
 
 {
@@ -50,13 +63,16 @@ Content-Type: application/json
   "y": 50
 }
 
-### 7) TRAJECTORY IMAGE (ACTOR=1)
-GET {{baseUrl}}/monitor/{{mapId}}/trajectory-image?actorId=1
+### 8) TRAJECTORY IMAGE (ACTOR={{actorId}})
+GET {{baseUrl}}/monitor/{{mapId}}/trajectory-image?actorId={{actorId}}
 Accept: image/png
 
-### 8) WORLD BASE IMAGE (REFERENCE)
+### 9) WORLD BASE IMAGE (REFERENCE)
 GET {{baseUrl}}/world/{{mapId}}/image
 Accept: image/png
 
-### 9) DELETE MAP
+### 10) DELETE ACTOR
+DELETE {{baseUrl}}/actor/{{actorId}}
+
+### 11) DELETE MAP
 DELETE {{baseUrl}}/map/{{mapId}}

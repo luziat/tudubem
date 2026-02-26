@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record ActorStatus(
         @Schema(description = "Actor ID", example = "1")
         Long actorId,
+        @Schema(description = "Actor 크기(셀 단위 반경)", example = "1")
+        int size,
         @Schema(description = "x 좌표", example = "12")
         int x,
         @Schema(description = "y 좌표", example = "8")

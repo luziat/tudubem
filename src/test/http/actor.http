@@ -6,7 +6,7 @@ Content-Type: application/json
 
 {
   "name": "forklift-01",
-  "persona": "안전 우선으로 이동하고 장애물을 만나면 멈춘다.",
+  "size": 2,
   "enabled": true
 }
 
@@ -28,7 +28,7 @@ Content-Type: application/json
 
 {
   "name": "forklift-01-updated",
-  "persona": "장애물 우회 후 목표 지점으로 재이동한다.",
+  "size": 3,
   "enabled": true
 }
 

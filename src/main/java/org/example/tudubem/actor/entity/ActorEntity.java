@@ -25,6 +25,10 @@ public class ActorEntity {
     private String name;
 
     @Column(nullable = false)
+    @Schema(description = "Actor 크기(셀 단위 반경)", example = "1")
+    private Integer size = 1;
+
+    @Column(nullable = false)
     @Schema(description = "활성 상태", example = "true")
     private Boolean enabled = true;
 }

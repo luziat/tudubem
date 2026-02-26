@@ -39,7 +39,7 @@ Content-Type: application/json
 %}
 
 ### 4) BUILD GRID MAP (WITH ENABLED KEEPOUT)
-POST {{baseUrl}}/grid-map/{{mapId}}/build
+POST {{baseUrl}}/world/{{mapId}}/build
 Accept: application/json
 
 ### 5) DISABLE KEEPOUT ZONE
@@ -54,15 +54,15 @@ Content-Type: application/json
 }
 
 ### 6) BUILD GRID MAP (WITH DISABLED KEEPOUT)
-POST {{baseUrl}}/grid-map/{{mapId}}/build
+POST {{baseUrl}}/world/{{mapId}}/build
 Accept: application/json
 
 ### 7) GET CACHED GRID MAP IMAGE (PNG)
-GET {{baseUrl}}/grid-map/{{mapId}}/image
+GET {{baseUrl}}/world/{{mapId}}/image
 Accept: image/png
 
 ### 8) BUILD WITH INVALID MAP ID (EXPECT 404)
-POST {{baseUrl}}/grid-map/999999999/build
+POST {{baseUrl}}/world/999999999/build
 Accept: application/json
 
 ### 9) DELETE MAP

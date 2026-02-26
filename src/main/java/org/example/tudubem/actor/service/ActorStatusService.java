@@ -1,7 +1,9 @@
 package org.example.tudubem.actor.service;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.example.tudubem.actor.dto.ActorStatus;
+import org.example.tudubem.actor.entity.ActorEntity;
 import org.example.tudubem.actor.service.pathfind.GridPoint;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -17,19 +19,32 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @Service
+@RequiredArgsConstructor
 public class ActorStatusService {
 
     private static final int MAX_TRAIL_POINTS = 1_000;
+    private static final int DEFAULT_START_X = 10;
+    private static final int DEFAULT_START_Y = 10;
     private static final Sinks.EmitFailureHandler RETRY_NON_SERIALIZED =
             (signalType, emitResult) -> emitResult == Sinks.EmitResult.FAIL_NON_SERIALIZED;
 
+    private final ActorRegistry actorRegistry;
     private final ConcurrentMap<Long, ActorStatus> statuses = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, Deque<GridPoint>> trails = new ConcurrentHashMap<>();
     private final Sinks.Many<ActorStatus> statusSink = Sinks.many().replay().latest();
 
     @PostConstruct
     public void init() {
-        upsert(new ActorStatus(1L, 10, 10, ""));
+        actorRegistry.refresh();
+        int offset = 0;
+        for (ActorEntity actor : actorRegistry.findAllActive()) {
+            if (actor.getId() == null) {
+                continue;
+            }
+            int size = actor.getSize() == null || actor.getSize() < 1 ? 1 : actor.getSize();
+            upsert(new ActorStatus(actor.getId(), size, DEFAULT_START_X + offset, DEFAULT_START_Y, ""));
+            offset++;
+        }
     }
 
     public Flux<ActorStatus> asFlux() {
@@ -56,6 +71,10 @@ public class ActorStatusService {
             return null;
         }
         return new GridPoint(actorStatus.x(), actorStatus.y());
+    }
+
+    public ActorStatus getCurrentStatusOrNull(Long actorId) {
+        return statuses.get(actorId);
     }
 
     public java.util.List<GridPoint> getTrail(Long actorId) {
@@ -90,7 +109,8 @@ public class ActorStatusService {
     }
 
     private ActorStatus sanitize(ActorStatus status) {
-        return new ActorStatus(status.actorId(), status.x(), status.y(), status.speech());
+        int size = status.size() < 1 ? 1 : status.size();
+        return new ActorStatus(status.actorId(), size, status.x(), status.y(), status.speech());
     }
 
     private void addTrailPoint(Long actorId, GridPoint point) {

@@ -30,6 +30,9 @@ public class ActorService {
         if (actorEntity.getEnabled() == null) {
             actorEntity.setEnabled(true);
         }
+        if (actorEntity.getSize() == null || actorEntity.getSize() < 1) {
+            actorEntity.setSize(1);
+        }
         ActorEntity saved = actorRepository.save(actorEntity);
         actorRegistry.refresh();
         return saved;
@@ -40,6 +43,9 @@ public class ActorService {
         return actorRepository.findById(id)
                 .map(actorEntity -> {
                     actorEntity.setName(request.getName());
+                    if (request.getSize() != null && request.getSize() > 0) {
+                        actorEntity.setSize(request.getSize());
+                    }
                     if (request.getEnabled() != null) {
                         actorEntity.setEnabled(request.getEnabled());
                     }

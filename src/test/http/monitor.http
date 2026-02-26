@@ -15,7 +15,21 @@ Content-Type: application/json
   client.global.set("mapId", response.body.id);
 %}
 
-### 2) UPLOAD SENSOR MAP
+### 2) CREATE ACTOR
+POST {{baseUrl}}/actor
+Content-Type: application/json
+
+{
+  "name": "monitor-actor-01",
+  "size": 2,
+  "enabled": true
+}
+
+> {%
+  client.global.set("actorId", response.body.id);
+%}
+
+### 3) UPLOAD SENSOR MAP
 POST {{baseUrl}}/map/{{mapId}}/sensor-map
 Content-Type: multipart/form-data; boundary=MonitorBoundary
 
@@ -26,22 +40,25 @@ Content-Type: image/png
 < ../mini-map.png
 --MonitorBoundary--
 
-### 3) BUILD WORLD CACHE
+### 4) BUILD WORLD CACHE
 POST {{baseUrl}}/world/{{mapId}}/build
 Accept: application/json
 
-### 4) MOVE ACTOR
-POST {{baseUrl}}/actor/sim/{{mapId}}
+### 5) MOVE ACTOR
+POST {{baseUrl}}/actor/sim/{{mapId}}?actorId={{actorId}}
 Content-Type: application/json
 
 {
-  "x": 400,
+  "x": 40,
   "y": 25
 }
 
-### 5) GET TRAJECTORY IMAGE
-GET {{baseUrl}}/monitor/{{mapId}}/trajectory-image?actorId=1
+### 6) GET TRAJECTORY IMAGE
+GET {{baseUrl}}/monitor/{{mapId}}/trajectory-image?actorId={{actorId}}
 Accept: image/png
 
-### 6) DELETE MAP
+### 7) DELETE ACTOR
+DELETE {{baseUrl}}/actor/{{actorId}}
+
+### 8) DELETE MAP
 DELETE {{baseUrl}}/map/{{mapId}}
