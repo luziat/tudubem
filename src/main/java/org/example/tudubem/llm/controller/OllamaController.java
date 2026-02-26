@@ -1,4 +1,4 @@
-package org.example.tudubem.llm;
+package org.example.tudubem.llm.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.tudubem.llm.dto.GenerateModelResponse;

@@ -7,9 +7,7 @@ import org.example.tudubem.actor.service.pathfind.GridPoint;
 import org.example.tudubem.actor.service.pathfind.PathFindingStrategy;
 import org.example.tudubem.actor.service.pathfind.PathResult;
 import org.example.tudubem.world.service.WorldService;
-import org.example.tudubem.world.WorldUtils;
 import org.example.tudubem.world.service.grid.GridMap;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -21,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ActorSimService {
     private static final long DEFAULT_ACTOR_ID = 1L;
-    private static final Duration MOVE_TICK = Duration.ofMillis(500);
+    private static final Duration MOVE_TICK = Duration.ofMillis(100);
 
     private final ActorStatusService actorStatusService;
     private final WorldService worldService;
@@ -64,16 +62,5 @@ public class ActorSimService {
                 .subscribe();
 
         return pathResult;
-    }
-
-    // GridMap 위에 actor 궤적과 현재 위치를 그린 PNG를 반환한다.
-    public ResponseEntity<byte[]> getTrajectoryImage(Long mapId, Long actorId) {
-        GridMap gridMap = worldService.getCached(mapId)
-                .orElseGet(() -> worldService.buildAndCache(mapId));
-        return WorldUtils.toPngResponse(
-                gridMap,
-                actorStatusService.getTrail(actorId),
-                actorStatusService.getCurrentPointOrNull(actorId)
-        );
     }
 }

@@ -1,4 +1,4 @@
-package org.example.tudubem.llm.tools;
+package org.example.tudubem.llm.service.tools;
 
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Component;

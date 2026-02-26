@@ -1,7 +1,7 @@
 package org.example.tudubem.llm.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.tudubem.llm.tools.DefaultTools;
+import org.example.tudubem.llm.service.tools.DefaultTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;

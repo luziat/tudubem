@@ -4,9 +4,11 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.example.tudubem.actor.dto.ActorStatus;
 import org.example.tudubem.actor.service.ActorStatusService;
+import org.example.tudubem.world.WorldUtils;
 import org.example.tudubem.world.service.WorldService;
 import org.example.tudubem.world.service.grid.GridMap;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.Disposable;
 
@@ -51,6 +53,16 @@ public class MonitorService {
         for (Disposable subscription : subscriptions) {
             subscription.dispose();
         }
+    }
+
+    public ResponseEntity<byte[]> getTrajectoryImage(Long mapId, Long actorId) {
+        GridMap gridMap = worldService.getCached(mapId)
+                .orElseGet(() -> worldService.buildAndCache(mapId));
+        return WorldUtils.toPngResponse(
+                gridMap,
+                actorStatusService.getTrail(actorId),
+                actorStatusService.getCurrentPointOrNull(actorId)
+        );
     }
 
     private synchronized void renderConsole() {

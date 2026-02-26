@@ -34,11 +34,11 @@ Content-Type: application/json
 
 {
   "x": 10,
-  "y": 10
+  "y": 500
 }
 
 ### 5) TRAJECTORY IMAGE (ACTOR=1)
-GET {{baseUrl}}/actor/sim/{{mapId}}/image
+GET {{baseUrl}}/monitor/{{mapId}}/trajectory-image
 Accept: image/png
 
 ### 6) MOVE TO TARGET CELL #2
@@ -51,7 +51,7 @@ Content-Type: application/json
 }
 
 ### 7) TRAJECTORY IMAGE (ACTOR=1)
-GET {{baseUrl}}/actor/sim/{{mapId}}/image?actorId=1
+GET {{baseUrl}}/monitor/{{mapId}}/trajectory-image?actorId=1
 Accept: image/png
 
 ### 8) WORLD BASE IMAGE (REFERENCE)
