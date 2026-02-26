@@ -2,10 +2,10 @@ package org.example.tudubem.monitor;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import org.example.tudubem.actor.ActorStatus;
-import org.example.tudubem.actor.ActorStatusService;
-import org.example.tudubem.world.WorldService;
-import org.example.tudubem.world.grid.GridMap;
+import org.example.tudubem.actor.dto.ActorStatus;
+import org.example.tudubem.actor.service.ActorStatusService;
+import org.example.tudubem.world.service.WorldService;
+import org.example.tudubem.world.service.grid.GridMap;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import reactor.core.Disposable;

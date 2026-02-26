@@ -1,0 +1,13 @@
+package org.example.tudubem.world.entity;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface KeepoutZoneRepository extends JpaRepository<KeepoutZoneEntity, Long> {
+    List<KeepoutZoneEntity> findByMap_Id(Long mapId);
+    List<KeepoutZoneEntity> findByMap_IdAndEnabledTrue(Long mapId);
+
+    Optional<KeepoutZoneEntity> findByIdAndMap_Id(Long id, Long mapId);
+}

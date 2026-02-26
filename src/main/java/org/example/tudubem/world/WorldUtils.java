@@ -1,6 +1,8 @@
 package org.example.tudubem.world;
 
-import org.example.tudubem.world.grid.GridMap;
+import org.example.tudubem.actor.service.pathfind.GridPoint;
+import org.example.tudubem.world.dto.WorldBundle;
+import org.example.tudubem.world.service.grid.GridMap;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -105,8 +107,8 @@ public final class WorldUtils {
     // GridMap 위에 actor 이동 궤적(파랑)과 현재 위치(빨강)를 오버레이한 PNG 응답을 반환한다.
     public static ResponseEntity<byte[]> toPngResponse(
             GridMap gridMap,
-            List<org.example.tudubem.actor.pathfind.GridPoint> trail,
-            org.example.tudubem.actor.pathfind.GridPoint current
+            List<GridPoint> trail,
+            GridPoint current
     ) {
         int width = gridMap.widthCells();
         int height = gridMap.heightCells();
@@ -123,7 +125,7 @@ public final class WorldUtils {
 
         if (trail != null) {
             int trailRgb = new Color(0, 122, 255).getRGB();
-            for (org.example.tudubem.actor.pathfind.GridPoint point : trail) {
+            for (GridPoint point : trail) {
                 if (point == null) {
                     continue;
                 }

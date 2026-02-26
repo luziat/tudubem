@@ -1,10 +1,12 @@
 package org.example.tudubem.world;
 
-import org.example.tudubem.world.grid.GridMap;
-import org.example.tudubem.world.keepout.KeepoutZoneEntity;
-import org.example.tudubem.world.keepout.KeepoutZoneService;
-import org.example.tudubem.world.map.MapEntity;
-import org.example.tudubem.world.map.MapService;
+import org.example.tudubem.world.service.WorldDataStore;
+import org.example.tudubem.world.service.WorldService;
+import org.example.tudubem.world.service.grid.GridMap;
+import org.example.tudubem.world.entity.KeepoutZoneEntity;
+import org.example.tudubem.world.service.KeepoutZoneService;
+import org.example.tudubem.world.entity.MapEntity;
+import org.example.tudubem.world.service.MapService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
